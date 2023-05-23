@@ -7,7 +7,7 @@ start using docker
 
 3. Copy .env.example to .env and update value edit "EXPOSE_PORT_DB=25432" and "EXPOSE_PORT_WEB=81" to another port for 
 4. docker/bin% docker compose up -d --build phpfpm
-5. docker/bin% docker require predis/predis
+5. docker/bin% composer require predis/predis
 6. IN config's folder database.php line 124 edit "phpredis" to "predis" for Prevent port collision
 
 7. Run docker/bin/artisan key:gen to generate app key
