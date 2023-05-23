@@ -1,0 +1,9 @@
+#!/bin/bash
+
+PHP_CONTAINER="phpfpm"
+SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+
+# move to home dir
+cd $SCRIPTPATH/..
+
+docker compose exec $PHP_CONTAINER "$@"

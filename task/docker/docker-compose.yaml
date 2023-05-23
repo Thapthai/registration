@@ -1,0 +1,61 @@
+version: '3.4'
+services:
+  pgsql:
+    image: postgres:14-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_DATABASE}
+    volumes:
+      - ./data/pgsql:/var/lib/postgresql/data
+    ports:
+      - "${EXPOSE_PORT_DB:-5432}:5432"
+  phpfpm:
+    build: config/laravel
+    restart: unless-stopped
+    environment:
+      - DB_CONNECTION=${DB_CONNECTION-pgsql}
+      - DB_HOST=${DB_HOST-pgsql}
+      - DB_PORT=${DB_PORT}
+      - DB_USERNAME=${DB_USERNAME:-postgres}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - CACHE_DRIVER=redis
+      - SESSION_DRIVER=redis
+    volumes:
+      - ../:/var/www
+    depends_on:
+      - pgsql
+      - redis
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - ../:/var/www:ro
+      - ./config/nginx/conf.d:/etc/nginx/conf.d
+    ports:
+      - ${EXPOSE_PORT_WEB:-80}:80
+    depends_on:
+      - phpfpm
+  redis:
+    image: redis
+    restart: unless-stopped
+  queue:
+    build: config/laravel
+    restart: unless-stopped
+    environment:
+      - CONTAINER_ROLE=queue
+      - DB_HOST=${DB_HOST:-pgsql}
+      - DB_PORT=${DB_PORT}
+      - DB_USERNAME=${DB_USERNAME:-postgres}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - CACHE_DRIVER=redis
+      - SESSION_DRIVER=redis
+    volumes:
+      - ../:/var/www
+    depends_on:
+      - pgsql
+      - redis

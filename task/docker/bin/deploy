@@ -1,0 +1,20 @@
+#!/bin/bash
+
+SCRIPTPATH="$(
+  cd -- "$(dirname "$0")" >/dev/null 2>&1
+  pwd -P
+)"
+
+# update project
+echo "> UPDATE PROJECT"
+cd $SCRIPTPATH
+git fetch --all
+git reset --hard
+git pull
+
+echo "> DEPLOY"
+cd $SCRIPTPATH
+./composer install --no-dev
+./artisan migrate --force
+./artisan optimize
+./artisan queue:restart
